@@ -1,0 +1,42 @@
+.root {
+  min-height: 100vh;
+  background: transparent !important;
+}
+
+.header {
+  background: #ffffff !important;
+  border-bottom: 1px solid #dbe2ea;
+  height: 68px !important;
+  line-height: 1 !important;
+  display: flex;
+  align-items: center;
+  padding-inline: 20px !important;
+}
+
+.logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #0f766e 0%, #0e7490 100%);
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+}
+
+.title {
+  margin: 0 !important;
+}
+
+.sider {
+  border-right: 1px solid #dbe2ea;
+}
+
+.menu {
+  border-inline-end: 0 !important;
+  padding: 12px;
+}
+
+.content {
+  padding: 20px;
+}
