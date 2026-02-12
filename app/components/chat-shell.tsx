@@ -1,10 +1,13 @@
 "use client";
 
-import { SendOutlined, SettingOutlined, FileTextOutlined, RobotOutlined, UserOutlined, CloseOutlined } from "@ant-design/icons";
+import { useLLMSetup } from "@/hooks/use-llm-setup";
+import { STORAGE_KEYS } from "@/lib/browser/model-setup";
+import { RobotOutlined, SendOutlined, SettingOutlined, UserOutlined } from "@ant-design/icons";
 import {
   Alert,
+  Avatar,
+  Badge,
   Button,
-  Card,
   Drawer,
   Empty,
   Form,
@@ -13,16 +16,10 @@ import {
   Select,
   Space,
   Switch,
-  Typography,
-  Progress,
-  Avatar,
   Tooltip,
-  Badge,
+  Typography,
 } from "antd";
 import { useEffect, useMemo, useState } from "react";
-import { generateWithWebLLM } from "@/lib/browser/webllm-engine";
-import { STORAGE_KEYS } from "@/lib/browser/model-setup";
-import { useLLMSetup } from "@/hooks/use-llm-setup";
 import styles from "./chat-shell.module.css";
 
 const { TextArea } = Input;
@@ -42,27 +39,13 @@ interface GenerationSettings {
   jsonMode: boolean;
 }
 
-interface ChatShellProps {
-  initialMode?: "normal" | "rag";
-}
-
-export function ChatShell({ initialMode = "normal" }: ChatShellProps) {
+export function ChatShell() {
   const { loadedModelId, models } = useLLMSetup();
   const [prompt, setPrompt] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [form] = Form.useForm<GenerationSettings>();
-
-  // RAG State
-  const [mode, setMode] = useState<"normal" | "rag">(initialMode);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [activeDocument, setActiveDocument] = useState<{ id: string; name: string; chunkCount: number } | null>(null);
-
-  useEffect(() => {
-    setMode(initialMode);
-  }, [initialMode]);
 
   const loadedModel = useMemo(
     () => models.find((model) => model.id === loadedModelId) ?? null,
@@ -101,81 +84,7 @@ export function ChatShell({ initialMode = "normal" }: ChatShellProps) {
     setIsSettingsOpen(false);
   }
 
-  const canSend = Boolean(loadedModelId && prompt.trim().length > 0 && !isGenerating && !isUploading);
-
-  async function handleFileUpload(file: File) {
-    if (!file || file.type !== "application/pdf") {
-      alert("Only PDF files are supported");
-      return;
-    }
-
-    setIsUploading(true);
-    setUploadProgress(0);
-
-    try {
-      // Dynamic imports to save bundle size
-      const { extractTextFromPDF, chunkText, normalizeText } = await import("@/lib/rag/ingestion");
-      const { embeddingEngine } = await import("@/lib/rag/embeddings");
-      const { RagStore } = await import("@/lib/rag/store");
-
-      // 1. Extract
-      setUploadProgress(10);
-      const rawText = await extractTextFromPDF(file);
-      const cleanText = normalizeText(rawText);
-
-      // 2. Chunk
-      setUploadProgress(30);
-      const chunks = chunkText(cleanText);
-
-      if (chunks.length === 0) {
-        throw new Error("No text extracted from PDF");
-      }
-
-      // 3. Embed & Store
-      setUploadProgress(40);
-      const docId = crypto.randomUUID();
-
-      // Save Document Metadata
-      await RagStore.saveDocument({
-        id: docId,
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        createdAt: Date.now(),
-      });
-
-      // Embed chunks in batches
-      const BATCH_SIZE = 5;
-      const totalBatches = Math.ceil(chunks.length / BATCH_SIZE);
-
-      for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
-        const batch = chunks.slice(i, i + BATCH_SIZE);
-        const embeddings = await Promise.all(batch.map(text => embeddingEngine.embed(text)));
-
-        const chunkObjects = batch.map((text, idx) => ({
-          id: `${docId}-${i + idx}`,
-          documentId: docId,
-          text,
-          embedding: embeddings[idx],
-          index: i + idx,
-        }));
-
-        await RagStore.saveChunks(chunkObjects);
-
-        const currentBatch = Math.floor(i / BATCH_SIZE) + 1;
-        setUploadProgress(40 + Math.floor((currentBatch / totalBatches) * 50));
-      }
-
-      setActiveDocument({ id: docId, name: file.name, chunkCount: chunks.length });
-      setUploadProgress(100);
-
-    } catch (error) {
-      console.error("Upload failed:", error);
-      alert(`Upload failed: ${error}`);
-    } finally {
-      setIsUploading(false);
-    }
-  }
+  const canSend = Boolean(loadedModelId && prompt.trim().length > 0 && !isGenerating);
 
   async function sendPrompt() {
     if (!canSend) {
@@ -230,21 +139,7 @@ export function ChatShell({ initialMode = "normal" }: ChatShellProps) {
           await ensureWebLLMModelLoaded(loadedModelId);
         }
 
-        let inputForModel: { role: string; content: string }[] = [];
-
-        if (mode === "rag" && activeDocument) {
-          const { RagRetrieval } = await import("@/lib/rag/retrieval");
-          const context = await RagRetrieval.constructContext(userMessage.content, activeDocument.id);
-
-          const systemPrompt = `You are a helpful assistant. You must answer strictly using the provided context. If the answer is not present in the context, respond: "Not found in document."\n\nContext:\n${context}`;
-
-          inputForModel = [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userMessage.content }
-          ];
-        } else {
-          inputForModel = [...messages, userMessage].map(m => ({ role: m.role, content: m.content }));
-        }
+        const inputForModel = [...messages, userMessage].map(m => ({ role: m.role, content: m.content }));
 
         const stream = generateStreamWithWebLLM(inputForModel, {
           maxTokens: savedSettings?.maxTokens ?? 256,
@@ -309,7 +204,7 @@ export function ChatShell({ initialMode = "normal" }: ChatShellProps) {
           />
           <div>
             <Title level={4} style={{ margin: 0, fontSize: 18 }}>
-              {mode === "rag" ? "Document Assistant" : "AI Assistant"}
+              AI Assistant
             </Title>
             <Text type="secondary" style={{ fontSize: 13 }}>
               {loadedModelId ? (
@@ -321,34 +216,6 @@ export function ChatShell({ initialMode = "normal" }: ChatShellProps) {
           </div>
         </div>
         <Space size={8}>
-          {mode === "rag" && (
-            <div style={{ position: 'relative', overflow: 'hidden', display: 'inline-block' }}>
-              <Tooltip title="Upload PDF Document">
-                <Button
-                  loading={isUploading}
-                  icon={<FileTextOutlined />}
-                  type="text"
-                  size="large"
-                >
-                  Upload
-                </Button>
-              </Tooltip>
-              <input
-                type="file"
-                accept=".pdf"
-                onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: '100%',
-                  opacity: 0,
-                  cursor: 'pointer'
-                }}
-              />
-            </div>
-          )}
           <Tooltip title="Settings">
             <Button
               icon={<SettingOutlined />}
@@ -359,42 +226,6 @@ export function ChatShell({ initialMode = "normal" }: ChatShellProps) {
           </Tooltip>
         </Space>
       </div>
-
-      {/* Active Document Banner */}
-      {mode === "rag" && activeDocument && (
-        <div className={styles.documentBanner}>
-          <div className={styles.documentInfo}>
-            <FileTextOutlined style={{ fontSize: 16, color: '#0d9488' }} />
-            <div>
-              <Text strong style={{ fontSize: 13 }}>{activeDocument.name}</Text>
-              <Text type="secondary" style={{ fontSize: 12, display: 'block' }}>
-                {activeDocument.chunkCount} chunks indexed
-              </Text>
-            </div>
-          </div>
-          <Button
-            type="text"
-            size="small"
-            icon={<CloseOutlined />}
-            onClick={() => setActiveDocument(null)}
-          />
-        </div>
-      )}
-
-      {/* Upload Progress */}
-      {isUploading && (
-        <div className={styles.uploadProgress}>
-          <div style={{ marginBottom: 8 }}>
-            <Text strong>Indexing Document...</Text>
-          </div>
-          <Progress
-            percent={uploadProgress}
-            status="active"
-            strokeColor="#0d9488"
-            trailColor="#f1f5f9"
-          />
-        </div>
-      )}
 
       {/* Messages Area */}
       <div className={styles.messagesContainer}>
