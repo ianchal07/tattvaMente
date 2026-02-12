@@ -75,14 +75,14 @@ export async function ensureWebLLMModelLoaded(
 }
 
 export async function* generateStreamWithWebLLM(
-  prompt: string,
+  input: string | { role: string; content: string }[],
   options?: { maxTokens?: number; temperature?: number },
 ): AsyncGenerator<string> {
   if (!activeEngine) {
     throw new Error("WebLLM engine is not loaded");
   }
 
-  const messages = [{ role: "user", content: prompt }];
+  const messages = Array.isArray(input) ? input : [{ role: "user", content: input }];
 
   const chunks = await activeEngine.chat.completions.create({
     messages,
@@ -102,11 +102,11 @@ export async function* generateStreamWithWebLLM(
 // Keep the non-streaming one for backward compatibility or simple use cases, 
 // but implement it using the stream to be DRY if desired, or just direct call.
 export async function generateWithWebLLM(
-  prompt: string,
+  input: string | { role: string; content: string }[],
   options?: { maxTokens?: number; temperature?: number },
 ): Promise<string> {
   let fullText = "";
-  for await (const chunk of generateStreamWithWebLLM(prompt, options)) {
+  for await (const chunk of generateStreamWithWebLLM(input, options)) {
     fullText += chunk;
   }
   return fullText;

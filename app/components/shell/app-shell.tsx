@@ -48,7 +48,6 @@ export function AppShell({ children }: { children: ReactNode }) {
             </Title>
             <Text type="secondary">First-Principles Intelligence in Your Browser</Text>
           </div>
-          <Badge status="processing" text="Ready" />
         </Space>
       </Header>
 

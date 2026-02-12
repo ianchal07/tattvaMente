@@ -141,8 +141,19 @@ export function ChatShell() {
       ]);
 
       if (loadedModel?.source?.provider === "webllm") {
-        const { generateStreamWithWebLLM } = await import("@/lib/browser/webllm-engine");
-        const stream = generateStreamWithWebLLM(userMessage.content, {
+        const { generateStreamWithWebLLM, ensureWebLLMModelLoaded } = await import("@/lib/browser/webllm-engine");
+
+        if (loadedModelId) {
+          await ensureWebLLMModelLoaded(loadedModelId);
+        }
+
+        // Prepare conversation history
+        const history = [...messages, userMessage].map((msg) => ({
+          role: msg.role,
+          content: msg.content,
+        }));
+
+        const stream = generateStreamWithWebLLM(history, {
           maxTokens: savedSettings?.maxTokens ?? 256,
           temperature: savedSettings?.temperature ?? 0.7,
         });
