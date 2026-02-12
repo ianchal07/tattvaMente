@@ -27,6 +27,11 @@ const items: MenuProps["items"] = [
     label: <Link href="/">Chat</Link>,
   },
   {
+    key: "/rag",
+    icon: <MessageOutlined />, // You might want a different icon, e.g., FileTextOutlined
+    label: <Link href="/rag">RAG Chat</Link>,
+  },
+  {
     key: "/debug",
     icon: <BugOutlined />,
     label: <Link href="/debug">Debug</Link>,

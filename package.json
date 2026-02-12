@@ -11,17 +11,21 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@mlc-ai/web-llm": "^0.2.79",
     "@ant-design/cssinjs": "^2.0.0",
     "@ant-design/icons": "^6.0.0",
+    "@mlc-ai/web-llm": "^0.2.79",
+    "@xenova/transformers": "^2.17.2",
     "antd": "^6.3.0",
+    "idb": "^8.0.3",
     "next": "^15.0.0",
+    "pdfjs-dist": "^5.4.624",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "zod": "3.23.8"
   },
   "devDependencies": {
     "@types/node": "20.14.10",
+    "@types/pdfjs-dist": "^2.10.377",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "typescript": "5.5.4"
