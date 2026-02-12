@@ -5,8 +5,8 @@ import { AppShell } from "@/app/components/shell/app-shell";
 import { ThemeProvider } from "@/app/providers/theme-provider";
 
 export const metadata: Metadata = {
-  title: "Browser LLM",
-  description: "Local browser inference platform scaffold",
+  title: "TattvaMente",
+  description: "First-Principles Intelligence in Your Browser",
 };
 
 export default function RootLayout({

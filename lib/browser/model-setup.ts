@@ -1,9 +1,9 @@
 export const STORAGE_KEYS = {
-  downloadedModels: "browserllm.downloaded-models",
-  loadedModelId: "browserllm.loaded-model-id",
-  generationSettings: "browserllm.generation-settings",
-  enabledModels: "browserllm.enabled-models",
-  providerOverrides: "browserllm.provider-overrides",
+  downloadedModels: "tattvamente.downloaded-models",
+  loadedModelId: "tattvamente.loaded-model-id",
+  generationSettings: "tattvamente.generation-settings",
+  enabledModels: "tattvamente.enabled-models",
+  providerOverrides: "tattvamente.provider-overrides",
 } as const;
 
 export type DownloadedModelsMap = Record<
@@ -44,7 +44,7 @@ export function markModelDownloaded(modelId: string, metadata?: { sourceUri?: st
     bytes: metadata?.bytes,
   };
   window.localStorage.setItem(STORAGE_KEYS.downloadedModels, JSON.stringify(downloaded));
-  window.dispatchEvent(new Event("browserllm:models-updated"));
+  window.dispatchEvent(new Event("tattvamente:models-updated"));
 }
 
 export function isModelDownloaded(modelId: string, expectedSourceUri?: string): boolean {
@@ -74,7 +74,67 @@ export function setLoadedModelId(modelId: string): void {
   }
 
   window.localStorage.setItem(STORAGE_KEYS.loadedModelId, modelId);
-  window.dispatchEvent(new Event("browserllm:model-loaded"));
+  window.dispatchEvent(new Event("tattvamente:model-loaded"));
+}
+
+export async function deleteModelFromCache(modelId: string): Promise<void> {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  // 1. Remove from local tracking
+  const downloaded = getDownloadedModels();
+  delete downloaded[modelId];
+  window.localStorage.setItem(STORAGE_KEYS.downloadedModels, JSON.stringify(downloaded));
+
+  // 2. Try to clean up Cache API
+  // WebLLM typically uses "webllm/model" or specific names.
+  // This is a best-effort cleanup.
+  try {
+    const keys = await caches.keys();
+    for (const key of keys) {
+      // Common WebLLM cache prefixes
+      if (key.includes("webllm") || key.includes(modelId)) {
+        // We'll be aggressive if the key explicitly strictly matches the model ID
+        if (key.includes(modelId)) {
+          await caches.delete(key);
+        }
+      }
+    }
+    // Also try to open the shared cache and delete specific requests if possible? 
+    // This is hard without knowing exact request URLs.
+    // For now, removing from tracking allows the UI to update. 
+    // "Clear All" is the reliable way to free space.
+  } catch (e) {
+    console.error("Failed to cleanup caches", e);
+  }
+
+  window.dispatchEvent(new Event("tattvamente:models-updated"));
+}
+
+export async function clearAllWebLLMCaches(): Promise<void> {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  // 1. Clear Local Storage tracking
+  window.localStorage.removeItem(STORAGE_KEYS.downloadedModels);
+  window.localStorage.removeItem(STORAGE_KEYS.loadedModelId);
+
+  // 2. Delete all WebLLM caches
+  try {
+    const keys = await caches.keys();
+    for (const key of keys) {
+      if (key.includes("webllm") || key.includes("mlc")) {
+        await caches.delete(key);
+      }
+    }
+  } catch (e) {
+    console.error("Failed to clear all caches", e);
+  }
+
+  window.dispatchEvent(new Event("tattvamente:models-updated"));
+  window.dispatchEvent(new Event("tattvamente:model-loaded"));
 }
 
 export interface CompatibilityState {

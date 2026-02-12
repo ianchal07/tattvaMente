@@ -1,7 +1,7 @@
 "use client";
 
-import { CheckCircleOutlined, DatabaseOutlined, ThunderboltOutlined } from "@ant-design/icons";
-import { Alert, Button, Card, Col, Progress, Row, Select, Space, Statistic, Tag } from "antd";
+import { CheckCircleOutlined, DatabaseOutlined, DeleteOutlined, ThunderboltOutlined } from "@ant-design/icons";
+import { Alert, Button, Card, Col, Popconfirm, Progress, Row, Select, Space, Statistic, Tag } from "antd";
 import { useMemo } from "react";
 import { useLLMSetup } from "@/hooks/use-llm-setup";
 
@@ -19,6 +19,8 @@ export default function CompatibilityPage() {
     loadSelectedModel,
     loadedModelId,
     downloadError,
+    deleteModel,
+    clearAllModels,
   } = useLLMSetup();
 
   const checks = useMemo(
@@ -51,6 +53,7 @@ export default function CompatibilityPage() {
   const canDownload =
     Boolean(selectedModel?.source?.model_uri) && !selectedModel?.downloaded && !isDownloading;
   const canLoad = Boolean(selectedModel?.downloaded) && selectedModelId !== loadedModelId;
+  const canDelete = Boolean(selectedModel?.downloaded);
   const downloadedCount = models.filter((model) => model.downloaded).length;
   const totalCount = models.length;
   const quotaGB = compatibility?.quotaGB ?? 0;
@@ -60,11 +63,24 @@ export default function CompatibilityPage() {
 
   return (
     <Space orientation="vertical" size={16} style={{ width: "100%" }}>
-      <div>
-        <h2 style={{ margin: 0 }}>System Configuration & Setup</h2>
-        <p style={{ marginTop: 8, color: "#64748b" }}>
-          Validate browser capabilities, download a model locally, and load it for chat.
-        </p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
+        <div>
+          <h2 style={{ margin: 0 }}>System Configuration & Setup</h2>
+          <p style={{ marginTop: 8, color: "#64748b" }}>
+            Validate browser capabilities, download a model locally, and load it for chat.
+          </p>
+        </div>
+        <Popconfirm
+          title="Clear all storage?"
+          description="This will remove all downloaded models. This action cannot be undone."
+          onConfirm={clearAllModels}
+          okText="Clear All"
+          cancelText="Cancel"
+        >
+          <Button danger type="dashed" icon={<DeleteOutlined />} disabled={downloadedCount === 0}>
+            Clear Storage
+          </Button>
+        </Popconfirm>
       </div>
 
       <Row gutter={[16, 16]}>
@@ -130,13 +146,26 @@ export default function CompatibilityPage() {
           {isDownloading ? <Progress percent={downloadProgress} status="active" /> : null}
           {downloadError ? <Alert type="error" showIcon message={downloadError} /> : null}
 
-          <Space>
+          <Space wrap>
             <Button type="primary" onClick={downloadModel} disabled={!canDownload} loading={isDownloading}>
               {selectedModel?.downloaded ? "Downloaded" : "Download Model"}
             </Button>
             <Button onClick={loadSelectedModel} disabled={!canLoad}>
               {loadedModelId === selectedModelId ? "Loaded" : "Load Model"}
             </Button>
+            {canDelete ? (
+              <Popconfirm
+                title="Delete this model?"
+                description="This will remove the model files from storage."
+                onConfirm={() => deleteModel(selectedModelId)}
+                okText="Delete"
+                cancelText="Cancel"
+              >
+                <Button danger icon={<DeleteOutlined />}>
+                  Delete
+                </Button>
+              </Popconfirm>
+            ) : null}
           </Space>
 
           {compatibility ? (

@@ -8,6 +8,8 @@ import {
   isModelDownloaded,
   markModelDownloaded,
   setLoadedModelId,
+  deleteModelFromCache,
+  clearAllWebLLMCaches,
 } from "@/lib/browser/model-setup";
 import { ensureWebLLMModelLoaded, getWebLLMModels } from "@/lib/browser/webllm-engine";
 
@@ -85,12 +87,12 @@ export function useLLMSetup() {
 
     const onLoaded = () => setLoadedModelIdState(getLoadedModelId());
 
-    window.addEventListener("browserllm:models-updated", onModelsUpdated);
-    window.addEventListener("browserllm:model-loaded", onLoaded);
+    window.addEventListener("tattvamente:models-updated", onModelsUpdated);
+    window.addEventListener("tattvamente:model-loaded", onLoaded);
 
     return () => {
-      window.removeEventListener("browserllm:models-updated", onModelsUpdated);
-      window.removeEventListener("browserllm:model-loaded", onLoaded);
+      window.removeEventListener("tattvamente:models-updated", onModelsUpdated);
+      window.removeEventListener("tattvamente:model-loaded", onLoaded);
     };
   }, [refreshCompatibility, refreshModels]);
 
@@ -146,6 +148,14 @@ export function useLLMSetup() {
     refreshCompatibility,
     suggestions,
     downloadError,
+    deleteModel: useCallback(async (modelId: string) => {
+      await deleteModelFromCache(modelId);
+      await refreshModels();
+    }, [refreshModels]),
+    clearAllModels: useCallback(async () => {
+      await clearAllWebLLMCaches();
+      await refreshModels();
+    }, [refreshModels]),
   };
 }
 

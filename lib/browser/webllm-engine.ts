@@ -15,7 +15,7 @@ async function getWebLLMModule(): Promise<WebLLMModule> {
   return webllmModulePromise;
 }
 
-export async function getWebLLMModels(limit = 12): Promise<ModelInfo[]> {
+export async function getWebLLMModels(limit = 100): Promise<ModelInfo[]> {
   const webllm = await getWebLLMModule();
   const config = (webllm as any).prebuiltAppConfig;
   const list = Array.isArray(config?.model_list) ? config.model_list : [];
