@@ -41,12 +41,12 @@ export function AppShell({ children }: { children: ReactNode }) {
     <Layout className={styles.root}>
       <Header className={styles.header}>
         <Space align="center" size={12}>
-          <div className={styles.logo}>AI</div>
+          <div className={styles.logo}>TM</div>
           <div>
             <Title level={5} className={styles.title}>
-              Browser LLM
+              TattvaMente
             </Title>
-            <Text type="secondary">Local inference platform</Text>
+            <Text type="secondary">First-Principles Intelligence in Your Browser</Text>
           </div>
           <Badge status="processing" text="Ready" />
         </Space>

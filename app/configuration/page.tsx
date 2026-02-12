@@ -1,10 +1,10 @@
 "use client";
 
 import { CheckCircleOutlined, DatabaseOutlined, DeleteOutlined, ThunderboltOutlined } from "@ant-design/icons";
-import { Alert, Button, Card, Col, Popconfirm, Progress, Row, Select, Space, Statistic, Tag } from "antd";
+import { Alert, Button, Card, Col, Popconfirm, Progress, Row, Select, Space, Statistic, Tag, Typography } from "antd";
 import { useMemo } from "react";
 import { useLLMSetup } from "@/hooks/use-llm-setup";
-
+const { Text } = Typography;
 export default function CompatibilityPage() {
   const {
     compatibility,
@@ -118,13 +118,42 @@ export default function CompatibilityPage() {
       <Card title="Model Setup Wizard">
         <Space orientation="vertical" size={12} style={{ width: "100%" }}>
           <Select
+            showSearch={{
+              filterOption: (input, option) => {
+                const search = input.toLowerCase();
+                const label = (option?.searchLabel as string) || "";
+                return label.includes(search);
+              },
+            }}
+            placeholder="Select a model"
             value={selectedModelId}
             onChange={setSelectedModelId}
-            options={models.map((model) => ({
-              label: `${model.name} (${model.size})`,
-              value: model.id,
-            }))}
             style={{ width: "100%" }}
+            options={models.map((model) => {
+              let statusTag = null;
+
+              if (model.id === loadedModelId) {
+                statusTag = <Tag color="blue">Loaded</Tag>;
+              } else if (model.downloaded) {
+                statusTag = <Tag color="green">Downloaded</Tag>;
+              }
+
+              return {
+                value: model.id,
+                searchLabel: `${model.name} ${model.size}`.toLowerCase(),
+                label: (
+                  <div style={{ width: "100%", display: "flex", justifyContent: "space-between" }}>
+                    <div style={{ display: "flex", width: "80%", flexDirection: "row", gap: "8px", alignItems: "center" }}>
+                      <Text >{model.name}</Text>
+                      <Text type="secondary" style={{ fontSize: 12 }}>
+                        {model.size}
+                      </Text>
+                    </div>
+                    <div >{statusTag}</div>
+                  </div>
+                ),
+              };
+            })}
           />
 
           {selectedModel ? (

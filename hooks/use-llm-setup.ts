@@ -32,9 +32,6 @@ export function useLLMSetup() {
 
     setModels(mapped);
 
-    if (!selectedModelId && mapped.length > 0) {
-      setSelectedModelId(mapped[0].id);
-    }
 
     const suggested = mapped
       .map((model) => {

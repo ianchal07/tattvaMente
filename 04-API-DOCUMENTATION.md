@@ -465,7 +465,7 @@ ws.onmessage = (event) => {
 ```typescript
 // browser-llm-client.ts
 
-export class BrowserLLMClient {
+export class TattvaMenteClient {
   private baseURL: string;
   
   constructor(baseURL: string = 'http://localhost:3000/api/v1') {
@@ -530,7 +530,7 @@ export class BrowserLLMClient {
 }
 
 // Usage
-const client = new BrowserLLMClient();
+const client = new TattvaMenteClient();
 
 // Simple generation
 const result = await client.generate({
@@ -557,7 +557,7 @@ import requests
 from typing import Iterator, Optional
 import sseclient
 
-class BrowserLLMClient:
+class TattvaMenteClient:
     def __init__(self, base_url: str = 'http://localhost:3000/api/v1'):
         self.base_url = base_url
     
@@ -620,7 +620,7 @@ class BrowserLLMClient:
         return response.json()['data']
 
 # Usage
-client = BrowserLLMClient()
+client = TattvaMenteClient()
 
 # Simple generation
 result = client.generate(
