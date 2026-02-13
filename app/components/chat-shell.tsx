@@ -304,7 +304,7 @@ export function ChatShell() {
           <Alert
             type="warning"
             showIcon
-            message="No model loaded"
+            title="No model loaded"
             description="Go to Configuration to download and load a model first."
             style={{ marginBottom: 12 }}
           />

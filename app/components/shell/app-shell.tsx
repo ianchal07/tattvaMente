@@ -26,12 +26,6 @@ const items: MenuProps["items"] = [
     icon: <MessageOutlined />,
     label: <Link href="/">Chat</Link>,
   },
-
-  {
-    key: "/debug",
-    icon: <BugOutlined />,
-    label: <Link href="/debug">Debug</Link>,
-  },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
