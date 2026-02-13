@@ -145,6 +145,7 @@ export interface CompatibilityState {
   usageGB: number;
   deviceMemoryGB: number;
   estimatedVramGB: number;
+  isMemoryCapped: boolean; // True if browser reports max memory (8GB) likely due to privacy cap
 }
 
 export async function getCompatibilityState(): Promise<CompatibilityState> {
@@ -166,16 +167,17 @@ export async function getCompatibilityState(): Promise<CompatibilityState> {
     usageGB = Number(((estimate.usage ?? 0) / 1024 / 1024 / 1024).toFixed(2));
   }
 
+  const deviceMemory = typeof navigator !== "undefined" ? navWithMemory.deviceMemory ?? 0 : 0;
+
   return {
     webgpuAvailable,
     storageAvailable,
     persistentStorage,
     quotaGB,
     usageGB,
-    deviceMemoryGB: typeof navigator !== "undefined" ? navWithMemory.deviceMemory ?? 0 : 0,
-    estimatedVramGB: estimateVramFromDeviceMemory(
-      typeof navigator !== "undefined" ? navWithMemory.deviceMemory ?? 0 : 0,
-    ),
+    deviceMemoryGB: deviceMemory,
+    estimatedVramGB: estimateVramFromDeviceMemory(deviceMemory),
+    isMemoryCapped: deviceMemory >= 8,
   };
 }
 

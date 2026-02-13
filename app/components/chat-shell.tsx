@@ -234,7 +234,7 @@ export function ChatShell() {
             <div className={styles.emptyState}>
               <Empty
                 description={
-                  <Space direction="vertical" size={8}>
+                  <Space orientation="vertical" size={8}>
                     <Text style={{ fontSize: 16 }}>Start a conversation</Text>
                     <Text type="secondary" style={{ fontSize: 13 }}>
                       {loadedModelId
@@ -304,7 +304,7 @@ export function ChatShell() {
           <Alert
             type="warning"
             showIcon
-            message="No model loaded"
+            title="No model loaded"
             description="Go to Configuration to download and load a model first."
             style={{ marginBottom: 12 }}
           />
@@ -356,7 +356,7 @@ export function ChatShell() {
         placement="right"
         onClose={() => setIsSettingsOpen(false)}
         open={isSettingsOpen}
-        width={400}
+        size={400}
       >
         <Form layout="vertical" form={form} onFinish={onSaveSettings}>
           <Form.Item

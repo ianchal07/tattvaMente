@@ -26,11 +26,10 @@ const items: MenuProps["items"] = [
     icon: <MessageOutlined />,
     label: <Link href="/">Chat</Link>,
   },
-
   {
-    key: "/debug",
+    key: "/api-access",
     icon: <BugOutlined />,
-    label: <Link href="/debug">Debug</Link>,
+    label: <Link href="/api-access">API Access</Link>,
   },
 ];
 
