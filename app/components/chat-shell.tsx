@@ -356,7 +356,7 @@ export function ChatShell() {
         placement="right"
         onClose={() => setIsSettingsOpen(false)}
         open={isSettingsOpen}
-        width={400}
+        size={400}
       >
         <Form layout="vertical" form={form} onFinish={onSaveSettings}>
           <Form.Item
