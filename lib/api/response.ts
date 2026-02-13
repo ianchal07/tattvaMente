@@ -11,22 +11,22 @@ function buildMetadata() {
   };
 }
 
-export function ok<T>(data: T, status = 200) {
+export function ok<T>(data: T, status = 200, headers?: HeadersInit) {
   const payload: APIResponse<T> = {
     success: true,
     data,
     metadata: buildMetadata(),
   };
 
-  return NextResponse.json(payload, { status });
+  return NextResponse.json(payload, { status, headers });
 }
 
-export function fail(error: APIError, status = 400) {
+export function fail(error: APIError, status = 400, headers?: HeadersInit) {
   const payload: APIResponse<never> = {
     success: false,
     error,
     metadata: buildMetadata(),
   };
 
-  return NextResponse.json(payload, { status });
+  return NextResponse.json(payload, { status, headers });
 }

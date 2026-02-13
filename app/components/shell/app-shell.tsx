@@ -26,6 +26,11 @@ const items: MenuProps["items"] = [
     icon: <MessageOutlined />,
     label: <Link href="/">Chat</Link>,
   },
+  {
+    key: "/api-access",
+    icon: <BugOutlined />,
+    label: <Link href="/api-access">API Access</Link>,
+  },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
