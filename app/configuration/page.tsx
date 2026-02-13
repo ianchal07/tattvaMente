@@ -1,7 +1,7 @@
 "use client";
 
-import { CheckCircleOutlined, DatabaseOutlined, DeleteOutlined, ThunderboltOutlined } from "@ant-design/icons";
-import { Alert, Button, Card, Col, Popconfirm, Progress, Row, Select, Space, Statistic, Tag, Typography } from "antd";
+import { CheckCircleOutlined, DatabaseOutlined, DeleteOutlined, InfoCircleOutlined, ThunderboltOutlined } from "@ant-design/icons";
+import { Alert, Button, Card, Col, Popconfirm, Progress, Row, Select, Space, Statistic, Tag, Tooltip, Typography } from "antd";
 import { useMemo } from "react";
 import { useLLMSetup } from "@/hooks/use-llm-setup";
 const { Text } = Typography;
@@ -28,9 +28,12 @@ export default function CompatibilityPage() {
       {
         title: "GPU VRAM",
         status: compatibility?.webgpuAvailable
-          ? `${compatibility.estimatedVramGB} GB`
+          ? `${compatibility.isMemoryCapped ? "≥ " : ""}${compatibility.estimatedVramGB} GB`
           : "N/A",
         icon: <ThunderboltOutlined />,
+        tooltip: compatibility?.isMemoryCapped
+          ? "Estimated from system RAM. Actual VRAM may be higher."
+          : undefined,
       },
       {
         title: "Disk Quota",
@@ -42,9 +45,12 @@ export default function CompatibilityPage() {
       {
         title: "System RAM",
         status: compatibility?.deviceMemoryGB
-          ? `${compatibility.deviceMemoryGB} GB`
+          ? `${compatibility.isMemoryCapped ? "≥ " : ""}${compatibility.deviceMemoryGB} GB`
           : "N/A",
         icon: <CheckCircleOutlined />,
+        tooltip: compatibility?.isMemoryCapped
+          ? "Browsers cap reported RAM at 8GB for privacy. Your actual RAM is likely higher."
+          : undefined,
       },
     ],
     [compatibility],
@@ -90,7 +96,14 @@ export default function CompatibilityPage() {
               <Space orientation="vertical" size={8}>
                 <span>{item.icon}</span>
                 <strong>{item.title}</strong>
-                <span style={{ color: "#64748b" }}>{item.status}</span>
+                <Space size={4}>
+                  <span style={{ color: "#64748b" }}>{item.status}</span>
+                  {item.tooltip && (
+                    <Tooltip title={item.tooltip}>
+                      <InfoCircleOutlined style={{ color: "#94a3b8", fontSize: 12 }} />
+                    </Tooltip>
+                  )}
+                </Space>
               </Space>
             </Card>
           </Col>

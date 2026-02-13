@@ -234,7 +234,7 @@ export function ChatShell() {
             <div className={styles.emptyState}>
               <Empty
                 description={
-                  <Space direction="vertical" size={8}>
+                  <Space orientation="vertical" size={8}>
                     <Text style={{ fontSize: 16 }}>Start a conversation</Text>
                     <Text type="secondary" style={{ fontSize: 13 }}>
                       {loadedModelId
